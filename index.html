@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<title>Budget planner</title>
+<meta name="description" content="Set a monthly budget, record income and expenses by category, and see what is left. Saved in your browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%A7%BE%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div id="storageNotice" class="notice" role="alert" hidden></div>
+
+  <header class="top">
+    <h1>Budget planner</h1>
+    <label>
+      <span class="sr-only">Currency</span>
+      <select id="currency"></select>
+    </label>
+  </header>
+
+  <div class="month-bar">
+    <button id="prevMonth" class="icon-btn" type="button" aria-label="Previous month">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg>
+    </button>
+    <h2 id="monthLabel" class="month-label" aria-live="polite"></h2>
+    <button id="nextMonth" class="icon-btn" type="button" aria-label="Next month">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 4.5L13 10l-5.5 5.5"/></svg>
+    </button>
+    <button id="thisMonth" class="link-btn" type="button" hidden>Back to this month</button>
+  </div>
+
+  <noscript><p class="notice">This app needs JavaScript to run.</p></noscript>
+
+  <main>
+    <section class="hero" aria-label="Month summary">
+      <div class="hero-main">
+        <p class="label">Left to spend</p>
+        <p id="remaining" class="remaining">&mdash;</p>
+        <p id="status" class="status" aria-live="polite"></p>
+        <div id="track" class="track" role="img" aria-label="Spending by category"></div>
+      </div>
+
+      <div class="budget-set">
+        <label class="field-label" for="budgetInput">Monthly budget</label>
+        <div class="input-row">
+          <div class="input-wrap">
+            <span id="budgetSym" class="sym" aria-hidden="true">&#8377;</span>
+            <input id="budgetInput" class="has-sym" type="text" inputmode="decimal" autocomplete="off" aria-describedby="budgetHint">
+          </div>
+          <button id="saveBudget" class="btn" type="button">Save</button>
+        </div>
+        <p id="budgetHint" class="hint"></p>
+        <p id="budgetMsg" class="msg" role="status"></p>
+      </div>
+    </section>
+
+    <dl class="stats">
+      <div class="tile income"><dt>Income</dt><dd id="statIncome">0</dd></div>
+      <div class="tile spent"><dt>Spent</dt><dd id="statSpent">0</dd></div>
+      <div class="tile balance"><dt>Balance <span class="sub">income minus spent</span></dt><dd id="statBalance">0</dd></div>
+    </dl>
+
+    <div class="columns">
+      <section id="formSection" class="block" aria-labelledby="formTitle">
+        <h2 id="formTitle">Add a transaction</h2>
+
+        <div class="seg-control" role="radiogroup" aria-label="Transaction type">
+          <input type="radio" name="txType" id="typeExpense" value="expense" checked>
+          <label for="typeExpense">Expense</label>
+          <input type="radio" name="txType" id="typeIncome" value="income">
+          <label for="typeIncome">Income</label>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label class="field-label" for="amount">Amount</label>
+            <div class="input-wrap">
+              <span id="amountSym" class="sym" aria-hidden="true">&#8377;</span>
+              <input id="amount" class="has-sym" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="dateBtn">Date</label>
+            <input id="date" type="hidden">
+            <div class="date-pick">
+              <button id="dateBtn" class="date-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="calendar">
+                <span id="dateText"></span>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="14" height="12.5" rx="2.5"/><path d="M3 8.5h14M7 3v3M13 3v3"/></svg>
+              </button>
+              <div id="calendar" class="calendar" role="dialog" aria-label="Choose a date" hidden>
+                <div class="cal-head">
+                  <button id="calPrev" class="icon-btn small" type="button" aria-label="Previous month">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.5 4.5L7 10l5.5 5.5"/></svg>
+                  </button>
+                  <p id="calTitle" class="cal-title" aria-live="polite"></p>
+                  <button id="calNext" class="icon-btn small" type="button" aria-label="Next month">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 4.5L13 10l-5.5 5.5"/></svg>
+                  </button>
+                </div>
+                <div class="cal-weekdays" aria-hidden="true"><span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span></div>
+                <div id="calGrid" class="cal-grid"></div>
+                <div class="cal-foot">
+                  <button id="calToday" class="link-btn" type="button">Today</button>
+                  <button id="calClose" class="link-btn" type="button">Close</button>
+                </div>
+              </div>
+            </div>
+            <div class="chips">
+              <button id="chipToday" class="chip" type="button" aria-pressed="false">Today</button>
+              <button id="chipYesterday" class="chip" type="button" aria-pressed="false">Yesterday</button>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="cat">Category</label>
+          <select id="cat"></select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="note">Note (optional)</label>
+          <input id="note" type="text" maxlength="80" autocomplete="off" placeholder="What was it for?">
+        </div>
+
+        <p id="formError" class="msg error" role="alert"></p>
+        <div class="actions">
+          <button id="submitTx" class="btn" type="button">Add expense</button>
+          <button id="cancelEdit" class="btn quiet" type="button" hidden>Cancel</button>
+        </div>
+        <p id="formOk" class="msg" role="status"></p>
+      </section>
+
+      <section class="block" aria-labelledby="breakdownTitle">
+        <h2 id="breakdownTitle">Where it went</h2>
+        <ul id="breakdown" class="breakdown"></ul>
+      </section>
+    </div>
+
+    <section class="block history" aria-labelledby="listTitle">
+      <div class="list-head">
+        <h2 id="listTitle">Transactions</h2>
+        <div class="filters">
+          <label><span class="sr-only">Filter by type</span>
+            <select id="typeFilter">
+              <option value="all">All types</option>
+              <option value="expense">Expenses</option>
+              <option value="income">Income</option>
+            </select>
+          </label>
+          <label><span class="sr-only">Filter by category</span>
+            <select id="catFilter"></select>
+          </label>
+        </div>
+      </div>
+      <ul id="txList"></ul>
+      <p id="emptyMsg" class="empty" hidden></p>
+      <div class="list-foot">
+        <button id="clearMonth" class="link-btn danger" type="button" hidden>Clear this month</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast-wrap" role="status" aria-live="polite">
+  <div id="toast" class="toast" hidden>
+    <span id="toastMsg"></span>
+    <button id="toastBtn" type="button" hidden></button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
